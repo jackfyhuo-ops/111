@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>天堂風放置RPG Alpha 2.8</title>
+<style>
+
+:root{
+  --bg:#07080d;
+  --panel:rgba(18,22,32,.92);
+  --panel2:rgba(8,10,16,.96);
+  --gold:#f1c76a;
+  --gold2:#8a6428;
+  --red:#d93b36;
+  --blue:#2f86ff;
+  --purple:#b56cff;
+  --green:#3df293;
+  --text:#f3e4b0;
+  --muted:#bca875;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(104,55,170,.25),transparent 28%),
+    radial-gradient(circle at 15% 45%,rgba(40,100,120,.15),transparent 30%),
+    linear-gradient(180deg,#07080d,#11131c 45%,#06070b);
+  color:var(--text);
+  font-family:"Microsoft JhengHei",Verdana,Arial,sans-serif;
+  overflow-x:hidden;
+}
+body:before{
+  content:"";
+  position:fixed;inset:0;
+  background:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+  background-size:28px 28px;
+  pointer-events:none;
+  opacity:.25;
+}
+header{
+  position:sticky;top:0;z-index:10;
+  padding:10px 14px;
+  background:linear-gradient(90deg,#090a0f,#17121a,#090a0f);
+  border-bottom:1px solid rgba(241,199,106,.38);
+  box-shadow:0 0 28px rgba(0,0,0,.85),0 0 18px rgba(241,199,106,.08);
+  text-align:center;
+}
+h1{margin:2px 0;color:#ffe5a0;font-size:24px;letter-spacing:2px;text-shadow:0 0 12px rgba(241,199,106,.45)}
+h2,h3{margin:4px 0 10px;color:#ffe5a0;text-shadow:0 0 10px rgba(241,199,106,.35)}
+button,select,input{
+  background:linear-gradient(180deg,#2b2630,#12141c);
+  color:#ffe5a0;
+  border:1px solid rgba(241,199,106,.45);
+  padding:7px 10px;margin:3px;
+  border-radius:10px;
+  box-shadow:inset 0 0 10px rgba(255,255,255,.04),0 0 8px rgba(0,0,0,.4);
+}
+button:hover{filter:brightness(1.18);cursor:pointer;box-shadow:0 0 12px rgba(241,199,106,.25)}
+.panel{
+  background:linear-gradient(180deg,rgba(22,25,36,.94),rgba(6,8,13,.96));
+  border:1px solid rgba(241,199,106,.35);
+  border-radius:18px;
+  margin:8px;
+  padding:12px;
+  box-shadow:0 0 25px rgba(0,0,0,.65), inset 0 0 20px rgba(255,230,160,.035);
+  position:relative;
+  overflow:hidden;
+}
+.panel:after{
+  content:"";
+  position:absolute;left:10px;right:10px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,230,160,.7),transparent);
+}
+.grid{
+  display:grid;
+  grid-template-columns:minmax(280px,340px) minmax(340px,1fr) minmax(300px,390px);
+  gap:8px;
+  padding:8px;
+}
+@media(max-width:980px){.grid{grid-template-columns:1fr;padding:5px}.panel{margin:6px;padding:10px}h1{font-size:20px}}
+.bar{
+  height:18px;
+  background:#06070a;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:999px;
+  overflow:hidden;
+  margin:4px 0 9px;
+  box-shadow:inset 0 0 8px rgba(0,0,0,.8);
+}
+.fill{height:100%;transition:width .25s ease;box-shadow:0 0 12px currentColor}
+.hp{background:linear-gradient(90deg,#6b0b0b,#ff3737,#ff9c78)}
+.mp{background:linear-gradient(90deg,#083c86,#2d92ff,#7fd8ff)}
+.exp{background:linear-gradient(90deg,#8d5d0a,#ffd05c,#fff2a8)}
+.mhp{background:linear-gradient(90deg,#5b0707,#b00020,#ff7043)}
+.log{
+  height:330px;overflow:auto;
+  background:rgba(0,0,0,.42);
+  border:1px solid rgba(241,199,106,.22);
+  border-radius:14px;
+  padding:10px;
+  font-size:13px;line-height:1.55;
+  box-shadow:inset 0 0 18px rgba(0,0,0,.8);
+}
+.log hr{border:0;border-top:1px solid rgba(255,255,255,.06)}
+.item{
+  padding:8px;
+  margin:6px 0;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(0,0,0,.18));
+}
+.small{font-size:12px;color:var(--muted)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.statLine{display:grid;grid-template-columns:70px 55px 1fr;align-items:center;margin:5px 0}
+.good{color:#82d982}.bad{color:#ff7777}.gold{color:#ffe36d}.blue{color:#8fb9ff}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin:7px 0}
+.tabBody{display:none}.tabBody.active{display:block}
+#game{display:none}
+#playerInfo{
+  padding:10px;
+  border-radius:14px;
+  background:radial-gradient(circle at 0% 0%,rgba(181,108,255,.22),transparent 35%),rgba(0,0,0,.22);
+  border:1px solid rgba(181,108,255,.25);
+}
+#monsterInfo{
+  min-height:96px;
+  padding:12px;
+  border-radius:16px;
+  background:
+    radial-gradient(circle at 50% 15%,rgba(180,40,20,.22),transparent 30%),
+    linear-gradient(180deg,rgba(25,12,12,.75),rgba(0,0,0,.3));
+  border:1px solid rgba(255,90,60,.25);
+  text-align:center;
+  font-size:16px;
+}
+#equipInfo .item,#bagList .item,#skillInfo .item{
+  transition:transform .12s, box-shadow .12s;
+}
+#equipInfo .item:hover,#bagList .item:hover,#skillInfo .item:hover{
+  transform:translateY(-1px);
+  box-shadow:0 0 12px rgba(241,199,106,.13);
+}
+.mapCards{display:grid;grid-template-columns:1fr;gap:8px}
+.mapCard{
+  width:100%;
+  text-align:left;
+  padding:10px;
+  border-radius:14px;
+  background:linear-gradient(90deg,rgba(255,255,255,.06),rgba(0,0,0,.2));
+  border:1px solid rgba(241,199,106,.25);
+}
+.mapCard.selected,.mapCard.active{
+  border-color:#ffe36d;
+  box-shadow:0 0 18px rgba(255,227,109,.55), inset 0 0 16px rgba(255,227,109,.12);
+}
+.quickSkills{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.skillSlot{
+  min-height:58px;border-radius:12px;
+  border:1px solid rgba(181,108,255,.35);
+  background:radial-gradient(circle at 50% 0%,rgba(181,108,255,.25),rgba(0,0,0,.3));
+  display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;padding:5px;
+}
+@keyframes screenShake {
+  0% { transform: translate(0,0); }
+  20% { transform: translate(-5px,2px); }
+  40% { transform: translate(5px,-2px); }
+  60% { transform: translate(-4px,1px); }
+  80% { transform: translate(4px,-1px); }
+  100% { transform: translate(0,0); }
+}
+@keyframes flashRed {0%{box-shadow:inset 0 0 0 rgba(255,0,0,0)}50%{box-shadow:inset 0 0 120px rgba(255,0,0,.55)}100%{box-shadow:inset 0 0 0 rgba(255,0,0,0)}}
+@keyframes flashPurple {0%{box-shadow:inset 0 0 0 rgba(180,70,255,0)}50%{box-shadow:inset 0 0 120px rgba(180,70,255,.45)}100%{box-shadow:inset 0 0 0 rgba(180,70,255,0)}}
+@keyframes flashGreen {0%{box-shadow:inset 0 0 0 rgba(0,255,120,0)}50%{box-shadow:inset 0 0 120px rgba(0,255,120,.35)}100%{box-shadow:inset 0 0 0 rgba(0,255,120,0)}}
+.shake{animation:screenShake .22s linear}
+.flashRed{animation:flashRed .28s linear}
+.flashPurple{animation:flashPurple .28s linear}
+.flashGreen{animation:flashGreen .28s linear}
+.dmgNormal{color:#00ff66;font-weight:bold}
+.dmgTaken{color:#ff5555;font-weight:bold}
+.critText{color:#ffd700;font-size:20px;font-weight:bold;text-shadow:0 0 8px #ff6600}
+.magicText{color:#4da6ff;font-weight:bold}
+.magicCritText{color:#cc66ff;font-size:20px;font-weight:bold;text-shadow:0 0 10px #9b30ff}
+.bossCritText{color:#ff1f1f;font-size:22px;font-weight:bold;text-shadow:0 0 12px #ff0000}
+.healCritText{color:#00ff99;font-size:20px;font-weight:bold;text-shadow:0 0 10px #cc66ff}
+.healText{color:#00ff99;font-weight:bold}
+.dropText{color:#ff9900;font-weight:bold}
+.rainbow{font-weight:bold;background:linear-gradient(90deg,#ff3b3b,#ffd93b,#3bff7a,#3bb8ff,#c33bff);-webkit-background-clip:text;color:transparent;text-shadow:0 0 10px rgba(255,255,255,.25)}
+.lvEasy{color:#8ee28e;font-weight:bold}
+.lvNormal{color:#d8c27a;font-weight:bold}
+.lvWarn{color:#ffd45a;font-weight:bold}
+.lvDanger{color:#ff8a3d;font-weight:bold}
+.lvDeath{color:#ff4b4b;font-weight:bold;text-shadow:0 0 4px #900}
+
+
+/* Alpha5.3 mobile split UI */
+.mobileTop,.mobileBottom,.bottomTabs{display:none}
+@media(max-width:980px){
+  .grid{display:block;padding:0}
+  .panel{margin:0;border-radius:0}
+  .mobileTop{
+    display:block;
+    position:sticky;top:0;z-index:12;
+    background:linear-gradient(180deg,rgba(5,8,15,.98),rgba(12,15,22,.96));
+    border-bottom:1px solid rgba(241,199,106,.25);
+  }
+  .mobileBottom{
+    display:block;
+    padding-bottom:72px;
+  }
+  .desktopOnly{display:none!important}
+  .bottomTabs{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    background:#0b0d13;
+    border-top:1px solid rgba(241,199,106,.25);
+    z-index:30;
+    box-shadow:0 -4px 20px rgba(0,0,0,.55);
+  }
+  .bottomTabs button{
+    border:none;border-radius:0;margin:0;
+    min-height:64px;
+    background:linear-gradient(180deg,#171a24,#0c0e14);
+    font-size:12px;
+  }
+  .bottomTabs button.active{
+    background:linear-gradient(180deg,#433010,#17120b);
+    box-shadow:inset 0 2px 10px rgba(255,214,110,.2);
+  }
+  .mobilePane{display:none}
+  .mobilePane.active{display:block}
+}
+
+</style>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="天堂風RPG">
+<meta name="theme-color" content="#07080d">
+<!-- GitHub Pages mobile web build -->
+</head>
+<body>
+<header>
+<h1>天堂風放置RPG Alpha 2.8</h1>
+<div class="small">原創天堂風放置 RPG｜單檔 HTML｜LocalStorage 存檔</div>
+</header>
+
+<div id="create" class="panel">
+<h2>角色創建</h2>
+<div class="row">
+<label>職業：
+<select id="jobSelect" onchange="renderCreate()">
+<option value="knight">騎士</option>
+<option value="ranger">遊俠</option>
+<option value="mage">術士</option>
+<option value="lord">領主</option>
+</select>
+</label>
+<button onclick="resetCreate()">重置配點</button>
+</div>
+<p>初始六圍皆為 10，額外 <b>10</b> 點必須分配完才可開始。未轉生素質上限 30。</p>
+<div>剩餘點數：<b id="remain">10</b></div>
+<div id="createStats"></div><div id="jobPreview" class="panel small"></div>
+<button onclick="startGame()">開始遊戲</button>
+</div>
+
+<div id="game">
+<div class="grid">
+<section>
+<div class="panel">
+<h3>角色資訊</h3>
+<div id="playerInfo"></div>
+<div>HP <span id="hpText"></span></div>
+<div class="bar"><div id="hpBar" class="fill hp"></div></div>
+<div>MP <span id="mpText"></span></div>
+<div class="bar"><div id="mpBar" class="fill mp"></div></div>
+<div>EXP <span id="expText"></span></div>
+<div class="bar"><div id="expBar" class="fill exp"></div></div>
+<div id="statInfo"></div>
+<div class="tabs">
+<button onclick="rebirth()">Lv99轉生</button>
+<button onclick="saveGame(true)">手動存檔</button>
+<button onclick="hardReset()">刪除存檔</button>
+</div>
+</div>
+
+<div class="panel">
+<h3>地圖選擇</h3>
+<select id="mapSelect" onchange="changeMap();updateMapCardSelection()"></select>
+<div id="mapInfo" class="small"></div><div id="mapCards" class="mapCards"></div><div class="small">選擇地區後將自動前往。所有地圖皆可進入，請依怪物等級顏色判斷風險。</div>
+</div>
+
+<div class="panel">
+<h3>自動喝藥</h3>
+HP低於 <select id="autoHp"></select> 自動喝治療藥水<br>
+MP低於 <select id="autoMp"></select> 自動喝魔力藥水<br>
+<div id="potionRemain" class="small"></div>
+<hr style="border:0;border-top:1px solid rgba(255,255,255,.08)">
+<h3>快速購買藥水</h3>
+<div class="small">掛機前可在這裡快速補給，不用切到商店。</div>
+<div class="row">
+<select id="quickHpPotion"></select>
+<button onclick="quickBuyPotion('hp',10)">買10</button>
+<button onclick="quickBuyPotion('hp',50)">買50</button>
+<button onclick="quickBuyPotion('hp',100)">買100</button>
+</div>
+<div class="row">
+<select id="quickMpPotion"></select>
+<button onclick="quickBuyPotion('mp',10)">買10</button>
+<button onclick="quickBuyPotion('mp',50)">買50</button>
+<button onclick="quickBuyPotion('mp',100)">買100</button>
+</div>
+</div>
+</section>
+
+<section>
+<div class="panel">
+<h3>目前怪物</h3>
+<div id="monsterInfo"></div><div class="small">等級顏色：<span class="lvEasy">綠=輕鬆</span>｜<span class="lvNormal">金=適正</span>｜<span class="lvWarn">黃=危險</span>｜<span class="lvDanger">橘=高危</span>｜<span class="lvDeath">紅=極危</span></div>
+<div class="bar"><div id="monsterBar" class="fill mhp"></div></div>
+</div>
+
+<div class="panel">
+<h3>戰鬥紀錄</h3>
+<div id="log" class="log"></div><div id="quickSkills" class="quickSkills"></div>
+</div>
+
+<div class="panel">
+<h3>強化規則</h3>
+<div class="small">
+武器：安定值內 100%，超過安定值失敗消失，強化無上限；+20 以上固定 1%。<br>
+防具：最高 +10，超過安定值失敗消失。飾品：最高 +5，安定值 0，失敗消失。
+</div>
+</div>
+</section>
+
+<section>
+<div class="panel">
+<h3>裝備欄</h3>
+<div id="equipInfo"></div>
+</div>
+
+<div class="panel">
+<h3>技能欄</h3><div class="small"><b>學習與使用規則：</b>必須取得對應技能書／魔法書並消耗技能點學習後，才可以手動使用或自動施放。</div>
+<div id="skillInfo"></div>
+</div>
+
+<div class="panel">
+<h3>背包 <span id="bagCount"></span></h3>
+<div class="tabs">
+<button onclick="showTab('bagTab')">背包</button>
+<button onclick="showTab('shopTab')">藥水商店</button>
+<button onclick="showTab('sellTab')">自動販售</button>
+</div>
+<div id="bagTab" class="tabBody active"><div id="bagList"></div></div>
+<div id="shopTab" class="tabBody"><div id="shopList"></div></div>
+<div id="sellTab" class="tabBody">
+<label><input type="checkbox" id="autoSellOn" onchange="syncAutoSell()"> 啟用自動販售</label><br>
+<label><input type="checkbox" id="sellWeapons" onchange="syncAutoSell()"> 武器</label>
+<label><input type="checkbox" id="sellArmors" onchange="syncAutoSell()"> 防具</label>
+<label><input type="checkbox" id="sellAccessories" onchange="syncAutoSell()"> 飾品</label><br>
+自動販售強化值 ≤ <select id="sellPlus" onchange="syncAutoSell()">
+<option>0</option><option>1</option><option>2</option><option>3</option>
+</select><br>
+<label><input type="checkbox" id="keepBoss" checked onchange="syncAutoSell()"> 保留Boss裝</label>
+<label><input type="checkbox" id="keepBooks" checked onchange="syncAutoSell()"> 保留技能書</label>
+</div>
+</div>
+</section>
+</div>
+</div>
+
+<script>
+const STAT_KEYS=["str","dex","con","int","wis","cha"];
+const STAT_NAMES={str:"STR 力量",dex:"DEX 敏捷",con:"CON 體質",int:"INT 智力",wis:"WIS 精神",cha:"CHA 魅力"};
+const JOB_NAMES={knight:"騎士",ranger:"遊俠",mage:"術士",lord:"領主"};
+const JOB_GROWTH={
+ knight:{hp:1.35,mp:0.70,desc:"高HP、低MP，適合近戰與扛怪。"},
+ ranger:{hp:1.05,mp:1.00,desc:"HP/MP平均，命中與迴避表現穩定。"},
+ mage:{hp:0.75,mp:1.60,desc:"低HP、高MP，適合依賴魔法輸出。"},
+ lord:{hp:1.15,mp:1.15,desc:"HP/MP均衡，適合長期養成。"}
+};
+
+
+const DROP_RATE_CONFIG={
+ 0:{name:"新手群島",weapon:8,armor:7,accessory:3,scroll:2,skill:0.8,magic:0.5,mult:1.0},
+ 1:{name:"銀騎營地",weapon:10,armor:9,accessory:4,scroll:2.5,skill:1.0,magic:0.7,mult:1.2},
+ 2:{name:"古代平原",weapon:12,armor:10,accessory:5,scroll:4,skill:1.5,magic:1.2,mult:1.5},
+ 3:{name:"黑霧森林",weapon:15,armor:14,accessory:8,scroll:6,skill:2,magic:2,mult:2.0},
+ 4:{name:"獸人荒野",weapon:18,armor:16,accessory:10,scroll:8,skill:3,magic:2.5,mult:2.5},
+ 5:{name:"龍眠山谷",weapon:20,armor:18,accessory:12,scroll:10,skill:4,magic:4,mult:3.0},
+ 6:{name:"失落神殿",weapon:25,armor:23,accessory:15,scroll:12,skill:5,magic:5,mult:4.0},
+ 7:{name:"高塔深層",weapon:30,armor:28,accessory:20,scroll:15,skill:7,magic:7,mult:5.0}
+};
+function currentDropInfo(){
+ let d=DROP_RATE_CONFIG[p.map];
+ return `掉落率｜武器 ${d.weapon}%｜防具 ${d.armor}%｜飾品 ${d.accessory}%｜卷軸 ${d.scroll}%｜技能書 ${d.skill}%｜魔法書 ${d.magic}%｜倍率 x${d.mult}`;
+}
+
+const MAPS=[
+{name:"新手群島",rate:1,goldRate:1,minLv:1,monsters:["草原哥布林","小型史萊姆","森林野犬","灰毛兔","洞穴蝙蝠","流浪哥布林","泥沼史萊姆","草原野豬","新兵亡靈","森林盜賊","破布殭屍","野地狼犬","洞窟鼠人","幼年蜥蜴","狂躁蝙蝠","毒牙蜘蛛","漂流海賊","新兵骷髏","叢林獵犬","落單獸人"],hp:35,atk:3,exp:10,gold:[10,30]},
+{name:"銀騎營地",rate:1.2,goldRate:1.2,minLv:5,monsters:["森林狼人","骷髏士兵","腐敗殭屍","骷髏弓手","墓園守衛","黑袍亡者","狂暴狼人","墮落騎士","劇毒蜘蛛","墓地幽魂","黑暗獵犬","長矛獸人","斧頭獸人","骸骨法師","亡靈祭司","荒野強盜","被詛咒士兵","地穴巨鼠","石甲怪","骷髏指揮官"],hp:120,atk:10,exp:38,gold:[25,60]},
+{name:"古代平原",rate:1.5,goldRate:1.5,minLv:10,monsters:["獸人戰士","獸人弓手","巨型蜘蛛","岩石魔像","荒原盜賊","獸人法師","獸人斥候","荒原鬣狗","沙漠毒蠍","狂暴野牛","草原巨蜥","巨牙野豬","流浪傭兵","岩甲獸","地穴蟲","巨魔幼體","荒野食人花","沙塵幽靈","狂戰獸人","平原巨人"],hp:240,atk:20,exp:80,gold:[80,150]},
+{name:"黑霧森林",rate:2,goldRate:2,minLv:20,monsters:["黑影刺客","詛咒樹妖","暗黑獵手","森林幽魂","黑霧亡靈","森林女妖","黑霧狼王","邪惡精靈","墮落德魯伊","毒藤怪","腐化熊怪","夜行妖精","黑羽烏鴉","惡夢蜘蛛","闇影法師","血眼狼","瘟疫鹿","深林魔犬","邪木守衛","黑霧獵首者"],hp:620,atk:38,exp:220,gold:[180,360]},
+{name:"獸人荒野",rate:2.5,goldRate:2.5,minLv:30,monsters:["獸人酋長","狂暴食人魔","雙頭巨魔","獸人狂戰士","戰爭祭司","巨斧獸人","荒野獵人","熔岩巨蜥","山丘巨人","石膚食人魔","野蠻巨魔","荒原守衛","獸人騎兵","狂暴熊怪","火焰狼","黑角戰牛","荒野刺客","獸人薩滿","荒野統領","血斧督軍"],hp:1300,atk:68,exp:650,gold:[450,900]},
+{name:"龍眠山谷",rate:3,goldRate:3,minLv:40,monsters:["幼年飛龍","龍族守衛","翼龍","火焰飛龍","遠古龍衛","冰霜飛龍","毒龍幼體","岩龍","龍人戰士","龍人法師","龍人守衛","峽谷巨鷹","火蜥蜴","熔岩魔像","峽谷巨魔","龍血獸","龍牙狼","深谷幽龍","風暴飛龍","龍谷霸主親衛"],hp:3300,atk:120,exp:1800,gold:[1000,2000]},
+{name:"失落神殿",rate:4,goldRate:4,minLv:50,monsters:["神殿守護者","石像魔將軍","遠古祭司","失落騎士","遠古巨像","黃金石像鬼","神殿幽魂","遠古戰士","神殿刺客","神殿巫師","守墓巨人","詛咒石像","聖殿亡靈","古神信徒","深淵祭司","神殿獵犬","黃金守衛","深淵幽魂","石翼魔","失落王者親衛"],hp:6000,atk:170,exp:3500,gold:[2500,5000]},
+{name:"高塔深層",rate:5,goldRate:5,minLv:60,monsters:["深淵騎士","煉獄惡魔","深淵君主","黑炎魔將","終焉魔將","墮天使","深淵法師","煉獄守衛","黑翼惡魔","虛空刺客","靈魂收割者","深淵巨獸","魔界騎兵","黑炎祭司","虛空魔眼","深淵龍衛","煉獄龍騎","毀滅使徒","深淵霸主","深淵魔神分身"],hp:12000,atk:280,exp:8000,gold:[8000,16000]}
+];
+
+const MONSTER_LEVEL={"草原哥布林": 1, "小型史萊姆": 1, "森林野犬": 2, "灰毛兔": 1, "洞穴蝙蝠": 2, "流浪哥布林": 2, "泥沼史萊姆": 2, "草原野豬": 3, "新兵亡靈": 3, "森林盜賊": 3, "破布殭屍": 3, "野地狼犬": 4, "洞窟鼠人": 4, "幼年蜥蜴": 4, "狂躁蝙蝠": 4, "毒牙蜘蛛": 5, "漂流海賊": 5, "新兵骷髏": 5, "叢林獵犬": 5, "落單獸人": 6, "森林狼人": 5, "骷髏士兵": 5, "腐敗殭屍": 6, "骷髏弓手": 6, "墓園守衛": 7, "黑袍亡者": 7, "狂暴狼人": 7, "墮落騎士": 8, "劇毒蜘蛛": 8, "墓地幽魂": 8, "黑暗獵犬": 9, "長矛獸人": 9, "斧頭獸人": 9, "骸骨法師": 10, "亡靈祭司": 10, "荒野強盜": 10, "被詛咒士兵": 11, "地穴巨鼠": 11, "石甲怪": 12, "骷髏指揮官": 12, "獸人戰士": 10, "獸人弓手": 10, "巨型蜘蛛": 11, "岩石魔像": 12, "荒原盜賊": 12, "獸人法師": 13, "獸人斥候": 13, "荒原鬣狗": 14, "沙漠毒蠍": 14, "狂暴野牛": 15, "草原巨蜥": 15, "巨牙野豬": 16, "流浪傭兵": 17, "岩甲獸": 18, "地穴蟲": 18, "巨魔幼體": 19, "荒野食人花": 20, "沙塵幽靈": 20, "狂戰獸人": 21, "平原巨人": 22, "黑影刺客": 20, "詛咒樹妖": 21, "暗黑獵手": 21, "森林幽魂": 22, "黑霧亡靈": 23, "森林女妖": 24, "黑霧狼王": 25, "邪惡精靈": 25, "墮落德魯伊": 26, "毒藤怪": 27, "腐化熊怪": 28, "夜行妖精": 28, "黑羽烏鴉": 29, "惡夢蜘蛛": 30, "闇影法師": 31, "血眼狼": 31, "瘟疫鹿": 32, "深林魔犬": 33, "邪木守衛": 34, "黑霧獵首者": 34, "獸人酋長": 30, "狂暴食人魔": 31, "雙頭巨魔": 32, "獸人狂戰士": 32, "戰爭祭司": 33, "巨斧獸人": 34, "荒野獵人": 35, "熔岩巨蜥": 36, "山丘巨人": 36, "石膚食人魔": 37, "野蠻巨魔": 38, "荒原守衛": 38, "獸人騎兵": 39, "狂暴熊怪": 40, "火焰狼": 41, "黑角戰牛": 41, "荒野刺客": 42, "獸人薩滿": 43, "荒野統領": 44, "血斧督軍": 44, "幼年飛龍": 40, "龍族守衛": 41, "翼龍": 42, "火焰飛龍": 43, "遠古龍衛": 44, "冰霜飛龍": 45, "毒龍幼體": 45, "岩龍": 46, "龍人戰士": 47, "龍人法師": 48, "龍人守衛": 49, "峽谷巨鷹": 49, "火蜥蜴": 50, "熔岩魔像": 51, "峽谷巨魔": 52, "龍血獸": 52, "龍牙狼": 53, "深谷幽龍": 54, "風暴飛龍": 55, "龍谷霸主親衛": 55, "神殿守護者": 50, "石像魔將軍": 51, "遠古祭司": 52, "失落騎士": 53, "遠古巨像": 54, "黃金石像鬼": 55, "神殿幽魂": 56, "遠古戰士": 57, "神殿刺客": 58, "神殿巫師": 59, "守墓巨人": 60, "詛咒石像": 60, "聖殿亡靈": 61, "古神信徒": 62, "深淵祭司": 63, "神殿獵犬": 64, "黃金守衛": 65, "深淵幽魂": 65, "石翼魔": 66, "失落王者親衛": 66, "深淵騎士": 60, "煉獄惡魔": 62, "深淵君主": 64, "黑炎魔將": 66, "終焉魔將": 68, "墮天使": 70, "深淵法師": 72, "煉獄守衛": 74, "黑翼惡魔": 76, "虛空刺客": 78, "靈魂收割者": 80, "深淵巨獸": 82, "魔界騎兵": 84, "黑炎祭司": 86, "虛空魔眼": 88, "深淵龍衛": 90, "煉獄龍騎": 92, "毀滅使徒": 94, "深淵霸主": 96, "深淵魔神分身": 99};
+const MONSTER_EXP={"草原哥布林": 10, "小型史萊姆": 8, "森林野犬": 12, "灰毛兔": 6, "洞穴蝙蝠": 15, "流浪哥布林": 13, "泥沼史萊姆": 12, "草原野豬": 16, "新兵亡靈": 18, "森林盜賊": 20, "破布殭屍": 16, "野地狼犬": 18, "洞窟鼠人": 22, "幼年蜥蜴": 20, "狂躁蝙蝠": 24, "毒牙蜘蛛": 25, "漂流海賊": 28, "新兵骷髏": 26, "叢林獵犬": 22, "落單獸人": 35, "森林狼人": 35, "骷髏士兵": 40, "腐敗殭屍": 45, "骷髏弓手": 38, "墓園守衛": 50, "黑袍亡者": 55, "狂暴狼人": 58, "墮落騎士": 60, "劇毒蜘蛛": 52, "墓地幽魂": 66, "黑暗獵犬": 50, "長矛獸人": 62, "斧頭獸人": 68, "骸骨法師": 75, "亡靈祭司": 78, "荒野強盜": 55, "被詛咒士兵": 72, "地穴巨鼠": 45, "石甲怪": 85, "骷髏指揮官": 95, "獸人戰士": 80, "獸人弓手": 85, "巨型蜘蛛": 90, "岩石魔像": 100, "荒原盜賊": 95, "獸人法師": 110, "獸人斥候": 92, "荒原鬣狗": 88, "沙漠毒蠍": 96, "狂暴野牛": 120, "草原巨蜥": 108, "巨牙野豬": 118, "流浪傭兵": 125, "岩甲獸": 135, "地穴蟲": 105, "巨魔幼體": 140, "荒野食人花": 115, "沙塵幽靈": 145, "狂戰獸人": 160, "平原巨人": 180, "黑影刺客": 220, "詛咒樹妖": 230, "暗黑獵手": 240, "森林幽魂": 260, "黑霧亡靈": 280, "森林女妖": 290, "黑霧狼王": 300, "邪惡精靈": 315, "墮落德魯伊": 330, "毒藤怪": 340, "腐化熊怪": 360, "夜行妖精": 350, "黑羽烏鴉": 300, "惡夢蜘蛛": 380, "闇影法師": 420, "血眼狼": 350, "瘟疫鹿": 390, "深林魔犬": 370, "邪木守衛": 450, "黑霧獵首者": 520, "獸人酋長": 650, "狂暴食人魔": 700, "雙頭巨魔": 760, "獸人狂戰士": 820, "戰爭祭司": 900, "巨斧獸人": 960, "荒野獵人": 850, "熔岩巨蜥": 1000, "山丘巨人": 1100, "石膚食人魔": 1120, "野蠻巨魔": 1050, "荒原守衛": 980, "獸人騎兵": 1150, "狂暴熊怪": 1080, "火焰狼": 920, "黑角戰牛": 1180, "荒野刺客": 1100, "獸人薩滿": 1250, "荒野統領": 1350, "血斧督軍": 1500, "幼年飛龍": 1800, "龍族守衛": 1900, "翼龍": 2100, "火焰飛龍": 2250, "遠古龍衛": 2500, "冰霜飛龍": 2300, "毒龍幼體": 2200, "岩龍": 2600, "龍人戰士": 2400, "龍人法師": 2800, "龍人守衛": 2700, "峽谷巨鷹": 2000, "火蜥蜴": 2150, "熔岩魔像": 3000, "峽谷巨魔": 2900, "龍血獸": 3200, "龍牙狼": 3100, "深谷幽龍": 3600, "風暴飛龍": 3800, "龍谷霸主親衛": 4000, "神殿守護者": 3500, "石像魔將軍": 3800, "遠古祭司": 4100, "失落騎士": 4400, "遠古巨像": 4800, "黃金石像鬼": 5000, "神殿幽魂": 4300, "遠古戰士": 4600, "神殿刺客": 4700, "神殿巫師": 5200, "守墓巨人": 5400, "詛咒石像": 5100, "聖殿亡靈": 5300, "古神信徒": 5500, "深淵祭司": 6000, "神殿獵犬": 4500, "黃金守衛": 6500, "深淵幽魂": 6200, "石翼魔": 6800, "失落王者親衛": 7000, "深淵騎士": 8000, "煉獄惡魔": 9000, "深淵君主": 10500, "黑炎魔將": 12000, "終焉魔將": 15000, "墮天使": 16500, "深淵法師": 14000, "煉獄守衛": 13000, "黑翼惡魔": 15500, "虛空刺客": 14800, "靈魂收割者": 16800, "深淵巨獸": 17500, "魔界騎兵": 18000, "黑炎祭司": 16000, "虛空魔眼": 18500, "深淵龍衛": 19000, "煉獄龍騎": 19500, "毀滅使徒": 20000, "深淵霸主": 22000, "深淵魔神分身": 25000};
+
+const ITEMS=[
+{name:"破舊短刀",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:2,hit:1,safe:6,price:100,drop:8,maps:[0]},
+{name:"木劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:3,hit:1,safe:6,price:120,drop:8,maps:[0]},
+{name:"新兵短劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:4,hit:2,safe:6,price:300,drop:6,maps:[0,1]},
+{name:"獵人短弓",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:5,hit:3,dex:1,safe:6,price:500,drop:5,maps:[0,1]},
+{name:"初學法杖",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:4,hit:1,int:1,wis:1,safe:6,price:500,drop:5,maps:[0,1]},
+
+{name:"鐵劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:6,hit:3,safe:6,price:800,drop:10,maps:[1]},
+{name:"狼牙短劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:7,hit:4,dex:1,safe:6,price:1200,drop:8,maps:[1]},
+{name:"長槍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:8,hit:2,safe:6,price:1500,drop:7,maps:[1,2]},
+{name:"骸骨法杖",type:"weapon",job:["術士"],slot:"weapon",atk:7,int:2,safe:6,price:1800,drop:5,maps:[1]},
+{name:"騎士長劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:8,hit:4,str:1,safe:6,price:2200,drop:5,maps:[1,2]},
+
+{name:"東方武士刀",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:10,hit:4,str:1,safe:6,price:3500,drop:8,maps:[2]},
+{name:"騎兵長槍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:11,hit:3,safe:6,price:4000,drop:6,maps:[2]},
+{name:"精靈長弓",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:12,hit:5,dex:2,safe:6,price:5000,drop:5,maps:[2,3]},
+{name:"獸人戰斧",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:12,hit:2,str:2,safe:6,price:5200,drop:5,maps:[2,4]},
+{name:"魔導法杖",type:"weapon",job:["術士"],slot:"weapon",atk:10,int:2,wis:1,safe:6,price:5500,drop:4,maps:[2,3]},
+
+{name:"銀輝長劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:14,hit:5,str:1,safe:6,price:8000,drop:6,maps:[3]},
+{name:"暗影短刃",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:13,hit:7,dex:2,safe:6,price:8500,drop:6,maps:[3]},
+{name:"黑霧長弓",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:16,hit:6,dex:2,safe:6,price:10000,drop:4,maps:[3]},
+{name:"樹妖之杖",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:12,int:3,wis:1,safe:6,price:11000,drop:3,maps:[3],boss:true},
+
+{name:"騎士戰刃",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:18,hit:6,str:2,safe:7,price:16000,drop:5,maps:[4]},
+{name:"巨斧",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:20,hit:2,str:3,safe:6,price:18000,drop:4,maps:[4]},
+{name:"戰爭長槍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:19,hit:4,safe:6,price:17000,drop:4,maps:[4]},
+{name:"荒野戰弓",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:17,hit:7,dex:3,safe:6,price:16000,drop:4,maps:[4]},
+
+{name:"龍牙長槍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:23,hit:5,str:2,safe:7,price:26000,drop:4,maps:[5]},
+{name:"深淵法杖",type:"weapon",job:["術士"],slot:"weapon",atk:20,int:4,wis:2,safe:7,price:28000,drop:3,maps:[5]},
+{name:"龍翼神弓",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:25,hit:8,dex:3,safe:8,price:35000,drop:2,maps:[5,7],boss:true},
+{name:"龍王之劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:25,hit:7,str:3,safe:8,price:40000,drop:1.5,maps:[5],boss:true},
+
+{name:"王者之劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:28,hit:8,str:3,cha:1,safe:8,price:50000,drop:3,maps:[6]},
+{name:"聖光法杖",type:"weapon",job:["術士"],slot:"weapon",atk:24,int:4,wis:3,safe:8,price:52000,drop:2.5,maps:[6]},
+{name:"失落王者長劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:30,hit:8,str:3,con:1,safe:8,price:65000,drop:1,maps:[6],boss:true},
+
+{name:"龍紋長劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:32,hit:10,str:3,safe:8,price:80000,drop:2,maps:[7]},
+{name:"黑鋼雙手劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:36,hit:6,str:4,safe:8,price:90000,drop:1.5,maps:[7]},
+{name:"遠古龍杖",type:"weapon",job:["術士"],slot:"weapon",atk:30,int:5,wis:3,safe:8,price:95000,drop:1.5,maps:[7]},
+{name:"深淵魔劍",type:"weapon",job:["騎士","遊俠","術士","領主"],slot:"weapon",atk:40,hit:10,str:4,con:2,safe:8,price:150000,drop:0.5,maps:[7],boss:true},
+
+{name:"粗布衣",type:"armor",job:["騎士","領主"],slot:"armor",ac:1,safe:4,price:80,drop:7,maps:[0]},
+{name:"皮甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:2,safe:4,price:250,drop:6,maps:[0,1]},
+{name:"布鞋",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"boots",ac:1,safe:4,price:120,drop:5,maps:[0]},
+{name:"木盾",type:"armor",job:["騎士","領主"],slot:"shield",ac:1,safe:4,price:180,drop:5,maps:[0]},
+{name:"皮帽",type:"armor",job:["騎士","領主","遊俠"],slot:"helmet",ac:1,safe:4,price:180,drop:5,maps:[0,1]},
+
+{name:"鐵盔",type:"armor",job:["騎士","領主","遊俠"],slot:"helmet",ac:2,safe:4,price:500,drop:8,maps:[1]},
+{name:"鎖子甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:4,safe:4,price:1000,drop:7,maps:[1,2]},
+{name:"騎士盾",type:"armor",job:["騎士","領主"],slot:"shield",ac:3,safe:4,price:900,drop:6,maps:[1,2]},
+{name:"旅行斗篷",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"cloak",ac:2,safe:4,price:800,drop:5,maps:[1]},
+{name:"鐵靴",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"boots",ac:2,safe:4,price:700,drop:5,maps:[1,2]},
+
+{name:"獸骨鎧甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:5,con:1,safe:4,price:2500,drop:5,maps:[2]},
+{name:"岩甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:5,safe:4,price:2600,drop:5,maps:[2]},
+{name:"戰士手套",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"gloves",ac:2,str:1,safe:4,price:2200,drop:4,maps:[2,4]},
+{name:"精準長靴",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"boots",ac:2,dex:1,safe:4,price:2200,drop:4,maps:[2,3]},
+
+{name:"黑霧斗篷",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"cloak",ac:5,dex:1,safe:4,price:6000,drop:4,maps:[3]},
+{name:"迅捷長靴",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"boots",ac:4,dex:2,safe:4,price:6500,drop:4,maps:[3]},
+{name:"力量手套",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"gloves",ac:3,str:2,safe:4,price:7000,drop:3,maps:[3,4]},
+{name:"詛咒披風",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"cloak",ac:7,int:2,safe:6,price:10000,drop:1.5,maps:[3],boss:true},
+
+{name:"重甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:8,con:1,safe:6,price:12000,drop:4,maps:[4]},
+{name:"鋼鐵盾牌",type:"armor",job:["騎士","領主"],slot:"shield",ac:6,safe:6,price:10000,drop:4,maps:[4]},
+{name:"勇者手套",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"gloves",ac:4,str:2,safe:4,price:12000,drop:3,maps:[4]},
+{name:"酋長戰甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:8,str:2,con:1,safe:6,price:20000,drop:1,maps:[4],boss:true},
+
+{name:"龍鱗盔甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:10,con:2,safe:6,price:30000,drop:3,maps:[5],boss:true},
+{name:"龍翼斗篷",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"cloak",ac:8,dex:2,safe:6,price:26000,drop:3,maps:[5]},
+{name:"龍鱗盾",type:"armor",job:["騎士","領主"],slot:"shield",ac:8,con:1,safe:6,price:26000,drop:3,maps:[5]},
+{name:"龍王鎧甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:12,str:2,con:2,safe:6,price:50000,drop:1,maps:[5],boss:true},
+
+{name:"神殿戰甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:12,wis:1,con:1,safe:6,price:45000,drop:3,maps:[6]},
+{name:"聖盾",type:"armor",job:["騎士","領主"],slot:"shield",ac:10,wis:2,safe:6,price:40000,drop:2.5,maps:[6]},
+{name:"王者披風",type:"armor",job:["騎士","遊俠","術士","領主"],slot:"cloak",ac:10,cha:3,safe:6,price:55000,drop:1,maps:[6],boss:true},
+
+{name:"深淵戰甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:14,str:2,con:3,safe:7,price:90000,drop:2,maps:[7]},
+{name:"深淵鎧甲",type:"armor",job:["騎士","領主"],slot:"armor",ac:15,str:3,con:3,safe:7,price:140000,drop:0.5,maps:[7],boss:true},
+{name:"深淵王冠",type:"armor",job:["騎士","領主","遊俠"],slot:"helmet",ac:8,int:3,wis:3,cha:2,safe:6,price:120000,drop:0.5,maps:[7],boss:true},
+
+{name:"簡易戒指",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"ring1",con:1,safe:0,price:1000,drop:3,maps:[0]},
+{name:"命中項鍊",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"necklace",dex:1,safe:0,price:1500,drop:3,maps:[0,1]},
+{name:"力量戒指",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"ring1",str:1,safe:0,price:3000,drop:3,maps:[2,4]},
+{name:"敏捷戒指",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"ring2",dex:1,safe:0,price:3000,drop:3,maps:[2,3]},
+{name:"魔力項鍊",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"necklace",int:1,wis:1,safe:0,price:5000,drop:2,maps:[3,5]},
+{name:"生命項鍊",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"necklace",con:2,safe:0,price:8000,drop:2,maps:[4,5]},
+{name:"戰士腰帶",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"belt",str:1,con:1,safe:0,price:12000,drop:1.5,maps:[4,6]},
+{name:"遠古腰帶",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"belt",str:2,con:2,safe:0,price:30000,drop:1,maps:[6]},
+{name:"龍王戒指",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"ring1",str:2,dex:2,con:1,safe:0,price:50000,drop:0.5,maps:[5],boss:true},
+{name:"王者戒指",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"ring2",str:2,int:2,cha:2,safe:0,price:60000,drop:0.8,maps:[7]},
+{name:"深淵戒指",type:"accessory",job:["騎士","遊俠","術士","領主"],slot:"ring1",str:3,con:2,int:2,safe:0,price:100000,drop:0.3,maps:[7],boss:true}
+];
+
+
+const SKILLS={
+ knight:[
+  {name:"力量打擊",tier:1,lv:5,type:"attack",mp:4,cd:2,power:1.2,desc:"單體120%傷害"},
+  {name:"防禦姿態",tier:1,lv:8,type:"buff",mp:6,cd:12,duration:20,ac:3,desc:"短時間AC提升"},
+  {name:"戰意提升",tier:1,lv:12,type:"buff",mp:8,cd:18,duration:20,atkRate:0.1,desc:"攻擊+10%"},
+  {name:"猛擊",tier:2,lv:20,type:"attack",mp:15,cd:4,power:1.8,desc:"單體180%傷害"},
+  {name:"鋼鐵意志",tier:2,lv:30,type:"buff",mp:18,cd:25,duration:20,reduce:0.2,desc:"減傷20%"},
+  {name:"騎士怒擊",tier:3,lv:50,type:"attack",mp:30,cd:8,power:2.5,desc:"單體250%傷害"},
+  {name:"王者守護",tier:3,lv:70,type:"buff",mp:50,cd:45,duration:25,ac:12,reduce:0.25,desc:"高減傷與AC提升"}
+ ],
+ ranger:[
+  {name:"雙重射擊",tier:1,lv:5,type:"attack",mp:6,cd:3,power:1.4,desc:"額外攻擊"},
+  {name:"疾風步",tier:1,lv:10,type:"buff",mp:8,cd:18,duration:20,evade:5,desc:"迴避提升"},
+  {name:"精準姿態",tier:1,lv:15,type:"buff",mp:10,cd:18,duration:20,hit:5,desc:"命中提升"},
+  {name:"爆裂箭",tier:2,lv:25,type:"attack",mp:18,cd:6,power:2.0,desc:"範圍傷害"},
+  {name:"連射",tier:2,lv:35,type:"attack",mp:20,cd:7,power:2.3,desc:"多段攻擊"},
+  {name:"狂風箭雨",tier:3,lv:60,type:"attack",mp:40,cd:12,power:3.2,desc:"高傷AOE"},
+  {name:"極限射擊",tier:3,lv:80,type:"attack",mp:55,cd:18,power:4.5,desc:"超高爆發"}
+ ],
+ mage:[
+  {name:"火焰箭",tier:1,lv:5,type:"attack",mp:8,cd:2,power:1.5,desc:"單體火傷"},
+  {name:"冰刺",tier:1,lv:10,type:"attack",mp:10,cd:3,power:1.7,desc:"單體冰傷"},
+  {name:"魔力護盾",tier:1,lv:15,type:"buff",mp:12,cd:20,duration:20,reduce:0.15,desc:"減傷"},
+  {name:"火焰爆裂",tier:2,lv:25,type:"attack",mp:20,cd:5,power:2.5,desc:"範圍火傷"},
+  {name:"雷霆連鎖",tier:2,lv:35,type:"attack",mp:24,cd:6,power:2.8,desc:"多段魔傷"},
+  {name:"烈焰風暴",tier:3,lv:55,type:"attack",mp:35,cd:10,power:3.6,desc:"大範圍傷害"},
+  {name:"暴風雪",tier:3,lv:65,type:"attack",mp:40,cd:12,power:4.0,desc:"冰系AOE"},
+  {name:"終焉法陣",tier:4,lv:90,type:"attack",mp:60,cd:25,power:6.0,desc:"頂級AOE"}
+ ],
+ elf:[
+  {name:"自然治療",tier:1,lv:5,type:"heal",mp:8,cd:8,heal:0.2,desc:"恢復HP"},
+  {name:"風之加護",tier:1,lv:10,type:"buff",mp:10,cd:20,duration:25,dex:2,desc:"DEX提升"},
+  {name:"大地護盾",tier:1,lv:15,type:"buff",mp:12,cd:20,duration:25,ac:4,desc:"防禦提升"},
+  {name:"烈風之刃",tier:2,lv:30,type:"buff",mp:20,cd:25,duration:25,atkRate:0.15,desc:"攻擊提升"},
+  {name:"精靈加護",tier:2,lv:40,type:"buff",mp:22,cd:30,duration:25,hit:6,evade:6,desc:"命中與迴避提升"},
+  {name:"森林庇護",tier:3,lv:60,type:"buff",mp:35,cd:45,duration:30,reduce:0.2,desc:"生存強化"},
+  {name:"精靈王祝福",tier:3,lv:85,type:"buff",mp:55,cd:60,duration:35,allStat:2,desc:"頂級Buff"}
+ ],
+ lord:[
+  {name:"指揮號令",tier:1,lv:5,type:"buff",mp:10,cd:18,duration:25,allStat:1,desc:"小幅Buff"},
+  {name:"王之威嚴",tier:1,lv:15,type:"buff",mp:15,cd:22,duration:25,ac:5,desc:"防禦提升"},
+  {name:"激勵軍勢",tier:2,lv:30,type:"buff",mp:20,cd:25,duration:25,atkRate:0.15,desc:"攻擊提升"},
+  {name:"王者庇護",tier:2,lv:45,type:"heal",mp:25,cd:20,heal:0.25,desc:"HP恢復"},
+  {name:"王者戰歌",tier:3,lv:60,type:"buff",mp:30,cd:40,duration:30,allStat:2,desc:"全能力提升"},
+  {name:"王者降臨",tier:3,lv:90,type:"buff",mp:50,cd:75,duration:40,allStat:4,atkRate:0.2,ac:8,desc:"頂級Buff"}
+ ]
+};
+
+
+function skillBookName(skill){
+ // 術士與妖精魔法使用「魔法書」，騎士/遊俠/領主使用「技能書」
+ let magicNames=(SKILLS.mage||[]).concat(SKILLS.elf||[]).map(s=>s.name);
+ return magicNames.includes(skill.name) ? skill.name+"魔法書" : skill.name+"技能書";
+}
+function skillOwnerSkillList(){
+ let arr=[...(SKILLS[p.job]||[])];
+ if(p.job==="ranger")arr=arr.concat(SKILLS.elf||[]);
+ return arr;
+}
+
+const POTIONS=[
+{name:"小型治療藥水",kind:"hp",value:100,price:100},
+{name:"中型治療藥水",kind:"hp",value:300,price:500},
+{name:"大型治療藥水",kind:"hp",value:800,price:2000},
+{name:"終極治療藥水",kind:"hp",value:2000,price:8000},
+{name:"小型魔力藥水",kind:"mp",value:100,price:150},
+{name:"中型魔力藥水",kind:"mp",value:300,price:600},
+{name:"大型魔力藥水",kind:"mp",value:800,price:2500},
+{name:"終極魔力藥水",kind:"mp",value:2000,price:10000}
+];
+
+let createStats={str:10,dex:10,con:10,int:10,wis:10,cha:10};
+let remain=10;
+let p, monster, timer=null;
+
+function basePlayer(){
+ return {
+  job:"knight",level:1,exp:0,next:100,rebirth:0,gold:0,map:0,free:0,
+  stats:{str:10,dex:10,con:10,int:10,wis:10,cha:10},
+  hp:100,maxHp:100,mp:50,maxMp:50,
+  bagMax:100,bag:[],potions:{},scrolls:{weapon:3,armor:3,accessory:1},
+  equip:{weapon:null,helmet:null,armor:null,shield:null,cloak:null,gloves:null,boots:null,necklace:null,ring1:null,ring2:null,belt:null},
+  autoSell:{on:false,weapons:false,armors:false,accessories:false,maxPlus:0,keepBoss:true,keepBooks:true},skillCd:{},buffs:{},autoSkill:true,skillPoints:0,learnedSkills:[],books:{}
+ };
+}
+
+function resetCreate(){createStats={str:10,dex:10,con:10,int:10,wis:10,cha:10};remain=10;renderCreate();}
+function renderCreate(){
+ document.getElementById("remain").textContent=remain;
+ let h="";
+ STAT_KEYS.forEach(k=>h+=`<div class="statLine"><b>${k.toUpperCase()}</b><span>${createStats[k]}</span><button onclick="addCreateStat('${k}')">+</button></div>`);
+ document.getElementById("createStats").innerHTML=h;
+ let job=document.getElementById("jobSelect")?document.getElementById("jobSelect").value:"knight";
+ let hpGainPreview=Math.floor((5+Math.floor(createStats.con/2))*JOB_GROWTH[job].hp);
+ let mpGainPreview=Math.floor((3+Math.floor(createStats.int/2)+Math.floor(createStats.wis/4))*JOB_GROWTH[job].mp);
+ let hpPreview=100+Math.floor(createStats.con*2*JOB_GROWTH[job].hp);
+ let mpPreview=50+Math.floor((createStats.int+createStats.wis)*JOB_GROWTH[job].mp);
+ let box=document.getElementById("jobPreview");
+ if(box)box.innerHTML=`<b>${JOB_NAMES[job]}職業特色</b><br>${JOB_GROWTH[job].desc}<br>初始HP預估：${hpPreview}｜初始MP預估：${mpPreview}<br>每級HP成長：+${hpGainPreview}｜每級MP成長：+${mpGainPreview}`;
+}
+function addCreateStat(k){if(remain<=0||createStats[k]>=30)return;createStats[k]++;remain--;renderCreate();}
+function startGame(){
+ if(remain>0){alert("請先分配完所有能力點數");return;}
+ p=basePlayer();p.job=document.getElementById("jobSelect").value;p.stats={...createStats};
+ recalcMax(true);spawnMonster();
+ document.getElementById("create").style.display="none";document.getElementById("game").style.display="block";
+ initControls();renderAll();startTimer();saveGame(false);
+}
+function startTimer(){if(timer)clearInterval(timer);timer=setInterval(battle,1200);}
+function initControls(){
+ let ms=document.getElementById("mapSelect");
+ ms.innerHTML=MAPS.map((m,i)=>`<option value="${i}">${m.name}</option>`).join("");ms.value=p.map;
+ ["autoHp","autoMp"].forEach(id=>document.getElementById(id).innerHTML=[90,80,70,60,50,40,30,0].map(v=>`<option value="${v}">${v===0?"關閉":v+"%"}</option>`).join(""));
+ document.getElementById("autoHp").value=70;document.getElementById("autoMp").value=50;
+ syncAutoSellUI();renderShop();initQuickPotionSelects();
+}
+function totalStats(){
+ let s={...p.stats};
+ Object.values(p.equip).forEach(it=>{if(!it)return;STAT_KEYS.forEach(k=>{s[k]+=(it[k]||0)+(it.type==="accessory"?(it.plus||0):0);});});
+ Object.values(p.buffs||{}).forEach(b=>{
+  if(!b || b.turns<=0)return;
+  if(b.allStat)STAT_KEYS.forEach(k=>s[k]+=b.allStat);
+  STAT_KEYS.forEach(k=>{if(b[k])s[k]+=b[k];});
+ });
+ return s;
+}
+function hpGain(){let s=totalStats();return Math.max(1,Math.floor((5+Math.floor(s.con/2))*JOB_GROWTH[p.job].hp));}
+function mpGain(){let s=totalStats();return Math.max(1,Math.floor((3+Math.floor(s.int/2)+Math.floor(s.wis/4))*JOB_GROWTH[p.job].mp));}
+function recalcMax(full=false){
+ let oldMaxHp=p.maxHp||100,oldMaxMp=p.maxMp||50;
+ p.maxHp=(100+Math.floor(totalStats().con*2*JOB_GROWTH[p.job].hp))+(p.level-1)*hpGain();p.maxMp=(50+Math.floor((totalStats().int+totalStats().wis)*JOB_GROWTH[p.job].mp))+(p.level-1)*mpGain();
+ if(full){p.hp=p.maxHp;p.mp=p.maxMp;}else{p.hp=Math.min(p.maxHp,p.hp+Math.max(0,p.maxHp-oldMaxHp));p.mp=Math.min(p.maxMp,p.mp+Math.max(0,p.maxMp-oldMaxMp));}
+}
+function attack(){let s=totalStats();let a=5+Math.floor(s.str/2);let w=p.equip.weapon;if(w)a+=w.atk+(w.plus||0);Object.values(p.buffs||{}).forEach(b=>{if(b&&b.turns>0&&b.atkRate)a+=Math.floor(a*b.atkRate);});return a;}
+function ac(){let v=0;Object.values(p.equip).forEach(it=>{if(it&&it.type==="armor")v+=(it.ac||0)+(it.plus||0);});Object.values(p.buffs||{}).forEach(b=>{if(b&&b.turns>0&&b.ac)v+=b.ac;});return v;}
+function expRate(){return 1+p.rebirth*0.05;}
+function nextExp(lv){return Math.floor(100*Math.pow(lv,1.8)+(lv>80?Math.pow(lv-80,3)*5000:0));}
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function cloneItem(it){return {...it,plus:0,uid:Date.now()+Math.random()};}
+
+
+function jobText(it){return it.job?it.job.join("/"):"全職業";}
+
+function itemStatText(it){
+ let parts=[];
+ if(it.atk)parts.push("ATK+"+it.atk);
+ if(it.hit)parts.push("命中+"+it.hit);
+ if(it.ac)parts.push("AC+"+it.ac);
+ ["str","dex","con","int","wis","cha"].forEach(k=>{if(it[k])parts.push(k.toUpperCase()+"+"+it[k]);});
+ return parts.join("｜")||"無";
+}
+
+function itemName(it){return `${it.name}${it.plus?` +${it.plus}`:""}`;}
+function spawnMonster(){
+ const map=MAPS[p.map],name=map.monsters[rnd(0,map.monsters.length-1)];
+ const mlv=MONSTER_LEVEL[name]||map.minLv;
+ const lvScale=1+Math.max(0,mlv-map.minLv)*0.055;
+ const playerScale=1+Math.max(0,p.level-mlv)*0.012;
+ const scale=lvScale*playerScale;
+ monster={
+  name,
+  level:mlv,
+  hp:Math.floor(map.hp*scale),
+  maxHp:Math.floor(map.hp*scale),
+  atk:Math.floor(map.atk*scale),
+  exp:Math.floor((MONSTER_EXP[name]||map.exp)*scale),
+  gold:[Math.floor(map.gold[0]*lvScale),Math.floor(map.gold[1]*lvScale)],
+  boss:false
+ };
+ if(Math.random()<0.04){
+  const bossBase=map.monsters[rnd(0,map.monsters.length-1)];
+  const blv=(MONSTER_LEVEL[bossBase]||map.minLv)+3;
+  monster.name="區域Boss－"+bossBase;
+  monster.level=blv;
+  monster.hp=monster.maxHp=Math.floor(monster.maxHp*5.5);
+  monster.atk=Math.floor(monster.atk*2.3);
+  monster.exp=Math.floor(monster.exp*6);
+  monster.gold=[map.gold[0]*8,map.gold[1]*12];
+  monster.boss=true;
+  monster.bossRate=3+Math.min(7,p.map);
+  log(`<span class="bad">👑 ${monster.name} Lv.${monster.level} 出現！</span>`);
+ }
+}
+
+function availableSkills(){
+ // 只有已學習的技能／魔法才可使用與自動施放
+ return skillOwnerSkillList().filter(s=>p.level>=s.lv && (p.learnedSkills||[]).includes(s.name));
+}
+function tickSkills(){
+ if(!p.skillCd)p.skillCd={}; if(!p.buffs)p.buffs={};
+ Object.keys(p.skillCd).forEach(k=>{if(p.skillCd[k]>0)p.skillCd[k]--;});
+ Object.keys(p.buffs).forEach(k=>{if(p.buffs[k].turns>0)p.buffs[k].turns--;});
+}
+function reduceDamageByBuff(dmg){
+ let r=0; Object.values(p.buffs||{}).forEach(b=>{if(b&&b.turns>0&&b.reduce)r=Math.max(r,b.reduce);});
+ return Math.max(1,Math.floor(dmg*(1-r)));
+}
+function chooseSkill(){
+ if(!p.autoSkill)return null;
+ let skills=availableSkills().filter(s=>(p.skillCd[s.name]||0)<=0 && p.mp>=s.mp);
+ if(!skills.length)return null;
+ let heal=skills.find(s=>s.type==="heal" && p.hp/p.maxHp<0.65);
+ if(heal)return heal;
+ let buff=skills.find(s=>s.type==="buff" && (!p.buffs[s.name]||p.buffs[s.name].turns<=0));
+ if(buff)return buff;
+ let attacks=skills.filter(s=>s.type==="attack").sort((a,b)=>b.power-a.power);
+ return attacks[0]||null;
+}
+function useSkill(skill){
+ p.mp-=skill.mp; p.skillCd[skill.name]=Math.max(1,Math.ceil((skill.cd||3)/1.2));
+ if(skill.type==="attack"){
+  let dmg=Math.floor(attack()*skill.power);
+  let isMagic=(SKILLS.mage||[]).concat(SKILLS.elf||[]).some(x=>x.name===skill.name);
+  let isCrit=isMagic?rollPercent(magicCritRate()):rollPercent(physicalCritRate());
+  if(isCrit){
+   dmg=Math.floor(dmg*(isMagic?magicCritMultiplier():physicalCritMultiplier()));
+   visualEffect(isMagic?"magicCrit":"crit");
+  }
+  monster.hp-=dmg;
+  log(`<span class="${isMagic?'magicText':'blue'}">施放 ${skill.name}</span>，消耗MP ${skill.mp}，造成 ${isCrit?(isMagic?`<span class="magicCritText">🔮 法術爆擊 ${dmg}</span>`:`<span class="critText">💥 爆擊 ${dmg}</span>`):`<span class="${isMagic?'magicText':'dmgNormal'}">${dmg}</span>`} 傷害。`);
+  return true;
+ }
+ if(skill.type==="heal"){
+  let heal=Math.floor(p.maxHp*(skill.heal||0.2));
+  let isCrit=rollPercent(magicCritRate());
+  if(isCrit){heal=Math.floor(heal*2);visualEffect("healCrit");}
+  p.hp=Math.min(p.maxHp,p.hp+heal);
+  log(`<span class="blue">施放 ${skill.name}</span>，消耗MP ${skill.mp}，${isCrit?`<span class="healCritText">💚🔮 治癒爆擊！恢復HP ${heal}</span>`:`<span class="healText">恢復HP ${heal}</span>`}。`);
+  return true;
+ }
+ if(skill.type==="buff"){
+  p.buffs[skill.name]={turns:Math.max(1,Math.ceil((skill.duration||20)/1.2)),...skill};
+  log(`<span class="blue">施放 ${skill.name}</span>，消耗MP ${skill.mp}，效果：${skill.desc}`);
+  return true;
+ }
+ return false;
+}
+
+
+function visualEffect(type){
+ document.body.classList.remove("shake","flashRed","flashPurple","flashGreen");
+ void document.body.offsetWidth;
+ if(type==="crit"){
+  document.body.classList.add("shake");
+  setTimeout(()=>document.body.classList.remove("shake"),240);
+ }
+ if(type==="magicCrit"){
+  document.body.classList.add("shake","flashPurple");
+  setTimeout(()=>document.body.classList.remove("shake","flashPurple"),300);
+ }
+ if(type==="bossCrit"){
+  document.body.classList.add("shake","flashRed");
+  setTimeout(()=>document.body.classList.remove("shake","flashRed"),320);
+ }
+ if(type==="healCrit"){
+  document.body.classList.add("flashGreen");
+  setTimeout(()=>document.body.classList.remove("flashGreen"),320);
+ }
+}
+function physicalCritRate(){
+ let s=totalStats();
+ return Math.min(60,5+s.dex*0.3);
+}
+function physicalCritMultiplier(){
+ let s=totalStats();
+ return 1.5+s.str*0.01;
+}
+function magicCritRate(){
+ let s=totalStats();
+ return Math.min(70,5+s.int*0.2+s.wis*0.2);
+}
+function magicCritMultiplier(){
+ let s=totalStats();
+ return 1.75+s.wis*0.01;
+}
+function rollPercent(rate){return Math.random()*100<rate;}
+
+function battle(){
+ if(!p||!monster)return;tickSkills();autoPotion();let sk=chooseSkill();if(sk){useSkill(sk);if(monster.hp<=0){killMonster();renderAll();return;}}
+ let hit=80+Math.floor(totalStats().dex/2);
+ if(rnd(1,100)>hit){log(`你攻擊 ${monster.name}，但是MISS。`);}
+ else{let dmg=rnd(Math.floor(attack()*0.8),Math.floor(attack()*1.2));
+  let isCrit=rollPercent(physicalCritRate());
+  if(isCrit){dmg=Math.floor(dmg*physicalCritMultiplier());visualEffect("crit");}
+  monster.hp-=dmg;
+  log(`你對 Lv.${monster.level||0} ${monster.name} 造成 ${isCrit?`<span class="critText">💥 爆擊 ${dmg}</span>`:`<span class="dmgNormal">${dmg}</span>`} 傷害，怪物HP ${Math.max(0,monster.hp)}/${monster.maxHp}`);}
+ if(monster.hp<=0){killMonster();renderAll();return;}
+ let mdmg=reduceDamageByBuff(Math.max(1,monster.atk-ac()));
+ let mCritRate=monster.boss?15:3;
+ let mCrit=rollPercent(mCritRate);
+ if(mCrit){mdmg=Math.floor(mdmg*(monster.boss?2:1.5));visualEffect(monster.boss?"bossCrit":"crit");}
+ p.hp-=mdmg;
+ log(`${monster.name} 攻擊你，受到 ${mCrit?(monster.boss?`<span class="bossCritText">☠ Boss爆擊 ${mdmg}</span>`:`<span class="critText">💥 怪物爆擊 ${mdmg}</span>`):`<span class="dmgTaken">${mdmg}</span>`} 傷害。`);
+ if(p.hp<=0){p.hp=p.maxHp;p.mp=p.maxMp;log(`<span class="bad">你死亡並復活。</span>`);}
+ renderAll();saveGame(false);
+}
+function killMonster(){
+ const map=MAPS[p.map];let baseGold=rnd(monster.gold[0],monster.gold[1]);let bossRate=monster.boss?(monster.bossRate||3):1;let gold=Math.floor(baseGold*map.goldRate*bossRate);
+ p.gold+=gold;let exp=Math.floor(monster.exp*expRate());p.exp+=exp;
+ log(`擊敗 Lv.${monster.level||0} ${monster.name}，EXP +${exp}，金幣 +<span class="gold">${gold}</span>（基礎${baseGold} × 地圖${map.goldRate} × Boss${bossRate}）`);
+ rollDrops(map,bossRate);
+ while(p.level<99&&p.exp>=p.next){p.exp-=p.next;p.level++;p.next=nextExp(p.level);if(p.level>=60)p.free++;if(p.level%10===0)p.skillPoints=(p.skillPoints||0)+1;recalcMax(true);log(`<span class="good">升級！目前 Lv.${p.level}${p.level>=60?"，自由點數 +1":""}${p.level%10===0?"，技能點 +1":""}</span>`);}
+ if(p.level>=99){p.level=99;p.exp=0;log(`<span class="gold">已達 Lv99，可進行轉生。</span>`);}
+ spawnMonster();saveGame(false);
+}
+function finalDropRate(base,map,boss){return base*map.rate*boss;}
+function rollDrops(map,bossRate){
+ ITEMS.filter(it=>it.maps.includes(p.map)).forEach(it=>{let rate=finalDropRate(it.drop,map,bossRate);if(Math.random()*100<rate)addItem(cloneItem(it),`掉落判定：${it.name} 基礎${it.drop}% × 地圖${map.rate} × Boss${bossRate} = ${rate.toFixed(2)}%`);});
+ if(Math.random()*100<3*map.rate)addStack("scrolls","weapon",1,"武器強化卷軸");
+ if(Math.random()*100<3*map.rate)addStack("scrolls","armor",1,"防具強化卷軸");
+ if(Math.random()*100<1*map.rate)addStack("scrolls","accessory",1,"飾品強化卷軸");
+ let bookCandidates=Object.values(SKILLS).flat().filter(s=>s.lv<=Math.max(10,p.level+10));
+ if(bookCandidates.length && Math.random()*100 < (1*map.rate*bossRate)){
+  let sk=bookCandidates[rnd(0,bookCandidates.length-1)];
+  let book=skillBookName(sk);
+  p.books[book]=(p.books[book]||0)+1;
+  log(`<span class="good">獲得 ${book}</span>`);
+ }
+
+}
+function bagUsed(){return p.bag.length+Object.keys(p.potions).filter(k=>p.potions[k]>0).length+Object.keys(p.scrolls).filter(k=>p.scrolls[k]>0).length+Object.keys(p.books||{}).filter(k=>p.books[k]>0).length;}
+function sellPrice(it){let arr=[1,1.2,1.5,2,3,5,8,12,18,25,40,60,90,130,180,250];let plus=it.plus||0;let mult=arr[Math.min(plus,15)]||250*Math.pow(1.5,plus-15);return Math.floor(it.price*0.5*mult*(it.boss?3:1));}
+function shouldAutoSell(it){const a=p.autoSell;if(!a.on)return false;if(a.keepBoss&&it.boss)return false;if((it.plus||0)>a.maxPlus)return false;if(it.type==="weapon"&&a.weapons)return true;if(it.type==="armor"&&a.armors)return true;if(it.type==="accessory"&&a.accessories)return true;return false;}
+function addItem(it,reason){
+ if(shouldAutoSell(it)){let val=sellPrice(it);p.gold+=val;log(`${reason}<br>${itemName(it)} 符合自動販售，獲得金幣 +${val}`);return;}
+ if(bagUsed()>=p.bagMax){log(`<span class="bad">背包已滿，${it.name} 無法拾取。</span>`);return;}
+ p.bag.push(it);log(`${reason}<br><span class="dropText">獲得 ${itemName(it)}</span>`);
+}
+function addStack(group,key,qty,label){p[group][key]=(p[group][key]||0)+qty;log(`<span class="good">獲得 ${label} x${qty}</span>`);}
+function equipItem(uid){
+ let idx=p.bag.findIndex(x=>x.uid===uid);if(idx<0)return;let it=p.bag[idx],slot=it.slot;
+ if(it.type==="accessory"&&slot==="ring1"&&p.equip.ring1)slot="ring2";
+ if(p.equip[slot])p.bag.push(p.equip[slot]);
+ p.equip[slot]=it;p.bag.splice(idx,1);recalcMax(false);renderAll();saveGame(false);
+}
+function unequip(slot){if(!p.equip[slot])return;if(bagUsed()>=p.bagMax){alert("背包已滿");return;}p.bag.push(p.equip[slot]);p.equip[slot]=null;recalcMax(false);renderAll();}
+function sellItem(uid){let idx=p.bag.findIndex(x=>x.uid===uid);if(idx<0)return;let val=sellPrice(p.bag[idx]);p.gold+=val;log(`販售 ${itemName(p.bag[idx])}，獲得金幣 +${val}`);p.bag.splice(idx,1);renderAll();}
+function enchantEquipped(slot){
+ let it=p.equip[slot];if(!it)return;let scrollType=it.type==="weapon"?"weapon":it.type==="armor"?"armor":"accessory";
+ if((p.scrolls[scrollType]||0)<=0){alert("沒有對應強化卷軸");return;}
+ if(it.type==="armor"&&it.plus>=10){alert("防具最高+10");return;}
+ if(it.type==="accessory"&&it.plus>=5){alert("飾品最高+5");return;}
+ p.scrolls[scrollType]--;
+ if(it.plus<it.safe){it.plus++;log(`<span class="good">${it.name} 安定值內強化成功，變成 +${it.plus}</span>`);renderAll();return;}
+ let rate=enchantRate(it);
+ if(Math.random()*100<rate){it.plus++;log(`<span class="good">${it.name} 強化成功，變成 +${it.plus}（成功率${rate}%）</span>`);}
+ else{log(`<span class="bad">${itemName(it)} 強化失敗，裝備消失（成功率${rate}%）</span>`);p.equip[slot]=null;}
+ recalcMax(false);renderAll();saveGame(false);
+}
+function enchantRate(it){
+ let n=it.plus;
+ if(it.type==="accessory")return [50,30,15,5,1][Math.min(n,4)];
+ if(it.type==="armor")return {4:65,5:45,6:30,7:20,8:10,9:5}[n]||5;
+ if(n>=20)return 1;
+ return {6:65,7:45,8:30,9:20,10:15,11:12,12:10,13:8,14:6,15:5,16:4,17:3,18:2,19:1}[n]||65;
+}
+function buyPotion(i,qty){let pot=POTIONS[i],cost=pot.price*qty;if(p.gold<cost){alert("金幣不足");return;}p.gold-=cost;p.potions[pot.name]=(p.potions[pot.name]||0)+qty;renderAll();saveGame(false);}
+function autoPotion(){let hpPct=p.hp/p.maxHp*100,mpPct=p.mp/p.maxMp*100;let hpSet=Number(document.getElementById("autoHp").value),mpSet=Number(document.getElementById("autoMp").value);if(hpSet&&hpPct<hpSet)useBestPotion("hp");if(mpSet&&mpPct<mpSet)useBestPotion("mp");}
+function useBestPotion(kind){
+ let list=POTIONS.filter(x=>x.kind===kind).sort((a,b)=>a.value-b.value);
+ for(let pot of list){
+  if((p.potions[pot.name]||0)>0){
+   p.potions[pot.name]--;
+   if(kind==="hp")p.hp=Math.min(p.maxHp,p.hp+pot.value);else p.mp=Math.min(p.maxMp,p.mp+pot.value);
+   log(`自動使用 ${pot.name}，<span class="healText">恢復 ${pot.value}${kind.toUpperCase()}</span>，剩餘 ${p.potions[pot.name]||0}`);
+   return true;
+  }
+ }
+ log(`<span class="bad">${kind==="hp"?"治療":"魔力"}藥水不足，請到商店補給。</span>`);
+ return false;
+}
+function addFreeStat(k){if(p.free<=0)return;let max=30+p.rebirth;if(p.stats[k]>=max){alert("未轉生配點上限30，轉生加成可突破。");return;}p.stats[k]++;p.free--;recalcMax(false);renderAll();saveGame(false);}
+function rebirth(){
+ if(p.level<99){alert("Lv99 才能轉生");return;}
+ p.rebirth++;p.level=1;p.exp=0;p.next=100;p.free=0;STAT_KEYS.forEach(k=>p.stats[k]++);
+ recalcMax(true);log(`<span class="gold">轉生成功！六圍+1，EXP倍率 +5%。目前 ${p.rebirth} 轉。</span>`);renderAll();saveGame(false);
+}
+function changeMap(){
+ let idx=Number(document.getElementById("mapSelect").value);
+ if(Number.isNaN(idx) || !MAPS[idx]){
+   alert("地圖資料錯誤");
+   document.getElementById("mapSelect").value=p.map;
+   updateMapCardSelection();
+   return;
+ }
+ if(idx===p.map){
+   updateMapCardSelection();
+   log("目前已在「"+MAPS[p.map].name+"」。");
+   return;
+ }
+ p.map=idx;
+ spawnMonster();
+ updateMapCardSelection();
+ log('<span class="blue">已移動到 '+MAPS[p.map].name+'。</span>');
+ renderAll();
+ saveGame(false);
+}
+
+function renderAll(){renderPlayer();renderMonster();renderEquip();renderSkills();renderBag();renderShop();renderPotionRemain();renderMapCards();renderQuickSkills();renderMobilePanels();initQuickPotionSelects();syncAutoSellUI();}
+function renderPlayer(){
+ recalcMax(false);
+ document.getElementById("playerInfo").innerHTML=`Lv.${p.level} ${JOB_NAMES[p.job]}｜轉生 ${p.rebirth}｜金幣 <span class="gold">${Math.floor(p.gold).toLocaleString()}</span><br>自由點數：${p.free}｜技能點：${p.skillPoints||0}｜EXP倍率：${Math.round(expRate()*100)}%<br><span class="small">${JOB_GROWTH[p.job].desc}｜HP成長係數 x${JOB_GROWTH[p.job].hp}｜MP成長係數 x${JOB_GROWTH[p.job].mp}</span>`;
+ hpText.textContent=`${Math.floor(p.hp)}/${p.maxHp}`;mpText.textContent=`${Math.floor(p.mp)}/${p.maxMp}`;expText.textContent=`${p.exp}/${p.next}`;
+ hpBar.style.width=Math.max(0,p.hp/p.maxHp*100)+"%";mpBar.style.width=Math.max(0,p.mp/p.maxMp*100)+"%";expBar.style.width=Math.min(100,p.exp/p.next*100)+"%";
+ let s=totalStats(),h=`<hr>攻擊 ${attack()}｜AC ${ac()}｜每級HP +${hpGain()}｜每級MP +${mpGain()}<hr>`;
+ STAT_KEYS.forEach(k=>h+=`${STAT_NAMES[k]}：${s[k]} <button onclick="addFreeStat('${k}')">+</button><br>`);
+ document.getElementById("statInfo").innerHTML=h;
+ document.getElementById("mapSelect").value=p.map;
+ document.getElementById("mapInfo").innerHTML=`掉寶倍率 x${MAPS[p.map].rate}｜金幣倍率 x${MAPS[p.map].goldRate}｜無等級限制｜怪物 ${MAPS[p.map].monsters.length} 種｜等級 ${Math.min(...MAPS[p.map].monsters.map(n=>MONSTER_LEVEL[n]||MAPS[p.map].minLv))}~${Math.max(...MAPS[p.map].monsters.map(n=>MONSTER_LEVEL[n]||MAPS[p.map].minLv))}<br><span class="small">${currentDropInfo()}</span>`;
+}
+
+function levelDiffClass(mlv){
+ let diff=mlv-p.level;
+ if(diff<=-5)return "lvEasy";
+ if(diff<=3)return "lvNormal";
+ if(diff<=10)return "lvWarn";
+ if(diff<=20)return "lvDanger";
+ return "lvDeath";
+}
+function levelDiffText(mlv){
+ let diff=mlv-p.level;
+ if(diff<=-5)return "輕鬆";
+ if(diff<=3)return "適正";
+ if(diff<=10)return "危險";
+ if(diff<=20)return "高危";
+ return "極危";
+}
+
+function renderMonster(){
+ let mlv=monster.level||MAPS[p.map].minLv;
+ let cls=levelDiffClass(mlv);
+ let txt=levelDiffText(mlv);
+ let diff=mlv-p.level;
+ document.getElementById("monsterInfo").innerHTML=`${monster.name}${monster.boss?' <span class="bad">Boss</span>':''}｜<span class="${cls}">Lv.${mlv} ${txt}${diff>=0?` +${diff}`:` ${diff}`}</span><br>HP ${Math.max(0,monster.hp)}/${monster.maxHp}<br>攻擊 ${monster.atk}｜EXP ${monster.exp}｜金幣 ${monster.gold[0]}~${monster.gold[1]}`;
+ monsterBar.style.width=Math.max(0,monster.hp/monster.maxHp*100)+"%";
+}
+function renderEquip(){
+ let labels={weapon:"武器",helmet:"頭盔",armor:"盔甲",shield:"盾牌",cloak:"斗篷",gloves:"手套",boots:"靴子",necklace:"項鍊",ring1:"戒指1",ring2:"戒指2",belt:"腰帶"};
+ let h="";
+ Object.keys(p.equip).forEach(slot=>{let it=p.equip[slot];h+=`<div class="item"><b>${labels[slot]}</b>：${it?itemName(it)+"｜"+itemStatText(it)+"｜安定+"+it.safe+"｜售價"+sellPrice(it):"無"} `;if(it)h+=`<button onclick="unequip('${slot}')">卸下</button><button onclick="enchantEquipped('${slot}')">強化</button>`;h+=`</div>`;});
+ h+=`<div class="small">卷軸：武器 ${p.scrolls.weapon||0}｜防具 ${p.scrolls.armor||0}｜飾品 ${p.scrolls.accessory||0}</div>`;
+ document.getElementById("equipInfo").innerHTML=h;
+}
+
+
+
+function manualUseSkill(skillName){
+ let skill=availableSkills().find(s=>s.name===skillName);
+ if(!skill){alert("尚未學習，無法使用");return;}
+ if((p.skillCd[skill.name]||0)>0){alert("技能冷卻中");return;}
+ if(p.mp<skill.mp){alert("MP不足");return;}
+ useSkill(skill);
+ renderAll();
+ saveGame(false);
+}
+
+function learnSkill(skillName){
+ let skill=skillOwnerSkillList().find(s=>s.name===skillName);
+ if(!skill)return;
+ if(p.level<skill.lv){alert("等級不足，需要 Lv"+skill.lv);return;}
+ if((p.learnedSkills||[]).includes(skill.name)){alert("已學會");return;}
+ let book=skillBookName(skill);
+ if((p.books[book]||0)<=0){alert("缺少 "+book);return;}
+ if((p.skillPoints||0)<=0){alert("技能點不足");return;}
+ p.books[book]--;
+ p.skillPoints--;
+ p.learnedSkills.push(skill.name);
+ log(`<span class="good">學會 ${skill.name}！消耗 ${book} 與技能點 1。</span>`);
+ renderAll();
+ saveGame(false);
+}
+
+function renderSkills(){
+ let box=document.getElementById("skillInfo"); if(!box)return;
+ let all=skillOwnerSkillList();
+ let h=`<label><input type="checkbox" ${p.autoSkill?"checked":""} onchange="p.autoSkill=this.checked;saveGame(false)"> 自動施放已學會技能／魔法</label><br>`;
+ h+=`<div class="small">技能／魔法必須先取得對應技能書／魔法書並消耗技能點學習；未學習前不可使用，也不會自動施放。每10級+1技能點，怪物可掉落技能書／魔法書。</div>`;
+ h+=`<div class="gold">可用技能點：${p.skillPoints||0}</div>`;
+ h+=`<div class="small">持有書籍：${Object.keys(p.books||{}).filter(k=>p.books[k]>0).map(k=>k+" x"+p.books[k]).join("｜")||"無"}</div>`;
+ h+=all.map(s=>{
+  let learned=(p.learnedSkills||[]).includes(s.name);
+  let book=skillBookName(s);
+  let hasBook=(p.books&&p.books[book]>0);
+  let lvOk=p.level>=s.lv;
+  let cd=(p.skillCd&&p.skillCd[s.name])?p.skillCd[s.name]:0;
+  let active=(p.buffs&&p.buffs[s.name]&&p.buffs[s.name].turns>0)?`｜效果中 ${p.buffs[s.name].turns}`:"";
+  let state=learned?"✅ 已學會":(!lvOk?"🔒 等級不足":(!hasBook?"📕 缺少書籍":((p.skillPoints||0)<=0?"⚠️ 技能點不足":"📖 可學習")));
+  let btn=(!learned&&lvOk&&hasBook&&(p.skillPoints||0)>0)?`<button onclick="learnSkill('${s.name}')">學習</button>`:(learned?`<button onclick="manualUseSkill('${s.name}')">使用</button>`:"");
+  return `<div class="item">${state} [${s.tier}階] ${s.name}｜Lv${s.lv}｜MP ${s.mp}｜CD ${cd}${active} ${btn}<br><span class="small">${s.desc}｜需求：${book}</span></div>`;
+ }).join("");
+ box.innerHTML=h;
+}
+
+function renderBag(){
+ document.getElementById("bagCount").textContent=`${bagUsed()}/${p.bagMax}`;
+ let h="";
+ Object.keys(p.potions).forEach(k=>{if(p.potions[k]>0)h+=`<div class="item">${k} x${p.potions[k]}</div>`;});Object.keys(p.books||{}).forEach(k=>{if(p.books[k]>0)h+=`<div class="item">📕 ${k} x${p.books[k]}</div>`;});
+ p.bag.forEach(it=>h+=`<div class="item">${itemName(it)}｜${it.type}｜${itemStatText(it)}｜職業:${jobText(it)}｜安定+${it.safe}｜售價 ${sellPrice(it)} <button onclick="equipItem(${it.uid})">穿戴</button><button onclick="sellItem(${it.uid})">販售</button></div>`);
+ document.getElementById("bagList").innerHTML=h||"背包空空";
+}
+function renderShop(){document.getElementById("shopList").innerHTML=POTIONS.map((pot,i)=>`<div class="item">${pot.name}｜恢復${pot.value}${pot.kind.toUpperCase()}｜${pot.price}金 <button onclick="buyPotion(${i},10)">買10</button><button onclick="buyPotion(${i},50)">買50</button><button onclick="buyPotion(${i},100)">買100</button></div>`).join("");}
+function showTab(id){document.querySelectorAll(".tabBody").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");}
+function syncAutoSell(){p.autoSell={on:autoSellOn.checked,weapons:sellWeapons.checked,armors:sellArmors.checked,accessories:sellAccessories.checked,maxPlus:Number(sellPlus.value),keepBoss:keepBoss.checked,keepBooks:keepBooks.checked};saveGame(false);}
+function syncAutoSellUI(){if(!p)return;autoSellOn.checked=p.autoSell.on;sellWeapons.checked=p.autoSell.weapons;sellArmors.checked=p.autoSell.armors;sellAccessories.checked=p.autoSell.accessories;sellPlus.value=p.autoSell.maxPlus;keepBoss.checked=p.autoSell.keepBoss;keepBooks.checked=p.autoSell.keepBooks;}
+function log(t){let box=document.getElementById("log");box.innerHTML=t+"<hr>"+box.innerHTML;while(box.children.length>120)box.removeChild(box.lastChild);}
+function saveGame(msg=false){if(!p)return;localStorage.setItem("lineage_alpha_28",JSON.stringify(p));if(msg)alert("已存檔");}
+function loadGame(){let s=localStorage.getItem("lineage_alpha_28");if(!s)return false;try{p=JSON.parse(s);if(!p.next)p.next=nextExp(p.level);if(!p.skillCd)p.skillCd={};if(!p.buffs)p.buffs={};if(p.autoSkill===undefined)p.autoSkill=true;if(!p.learnedSkills)p.learnedSkills=[];if(!p.books)p.books={};if(p.skillPoints===undefined)p.skillPoints=0;document.getElementById("create").style.display="none";document.getElementById("game").style.display="block";initControls();spawnMonster();renderAll();startTimer();log("讀取存檔成功。");return true;}catch(e){return false;}}
+function hardReset(){if(confirm("確定刪除存檔？")){localStorage.removeItem("lineage_alpha_28");location.reload();}}
+renderCreate();if(!loadGame())p=null;
+</script>
+<div class="small" style="padding:8px">規則：素材不掉落｜藥水只能商店購買｜怪物只掉裝備、卷軸、技能書、魔法書與金幣。</div>
+<div id="mobileTop" class="mobileTop">
+  <div class="panel">
+    <h3>⚔ 戰鬥狀態</h3>
+    <div id="mobilePlayerMini"></div>
+    <div id="mobileMonsterMini"></div>
+    <div id="mobileCombatMini" class="small gold">掛機戰鬥中...</div>
+  </div>
+</div>
+
+<div id="mobileBottom" class="mobileBottom">
+  <div id="paneBattle" class="mobilePane active">
+    <div class="panel"><h3>戰鬥紀錄</h3><div id="mobileLog"></div></div>
+  </div>
+  <div id="paneBag" class="mobilePane">
+    <div class="panel"><h3>背包</h3><div id="mobileBag"></div></div>
+  </div>
+  <div id="paneEquip" class="mobilePane">
+    <div class="panel"><h3>裝備</h3><div id="mobileEquip"></div></div>
+  </div>
+  <div id="paneSkill" class="mobilePane">
+    <div class="panel"><h3>技能</h3><div id="mobileSkills"></div></div>
+  </div>
+  <div id="paneShop" class="mobilePane">
+    <div class="panel"><h3>商店／掛機設定</h3><div id="mobileShop"></div></div>
+  </div>
+</div>
+
+<div class="bottomTabs">
+  <button class="active" onclick="switchMobileTab('Battle',this)">⚔<br>戰鬥</button>
+  <button onclick="switchMobileTab('Bag',this)">🎒<br>背包</button>
+  <button onclick="switchMobileTab('Equip',this)">🛡<br>裝備</button>
+  <button onclick="switchMobileTab('Skill',this)">✨<br>技能</button>
+  <button onclick="switchMobileTab('Shop',this)">🏪<br>商店</button>
+</div>
+
+</body>
+
+<!-- Integrated build: 天堂風放置RPG Alpha 2.8 web version -->
+
+<!-- 160 monsters expanded build -->
+
+<!-- monster exp integrated build -->
+
+<!-- job hp mp differentiated build -->
+
+<!-- skills integrated build -->
+
+<!-- skill tree book build -->
+
+<!-- book required to learn and use build -->
+
+<!-- monster level per region build -->
+
+<!-- no map limit and level color build -->
+
+<!-- potion remaining build -->
+
+<!-- auto map change build -->
+
+<!-- equipment balance database build -->
+
+<!-- visual crit effects build -->
+
+<!-- bright ui alpha 5 build -->
+
+<!-- quick potion buy near idle settings build -->
+
+<!-- map selected frame fix build -->
+</html>
