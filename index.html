@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>天堂風放置RPG Alpha 2.8</title>
+<title>天堂風放置RPG Alpha 5.5</title>
 <style>
 
 :root{
@@ -240,11 +240,10 @@ button:hover{filter:brightness(1.18);cursor:pointer;box-shadow:0 0 12px rgba(241
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="天堂風RPG">
 <meta name="theme-color" content="#07080d">
-<!-- GitHub Pages mobile web build -->
 </head>
 <body>
 <header>
-<h1>天堂風放置RPG Alpha 2.8</h1>
+<h1>天堂風放置RPG Alpha 5.5</h1>
 <div class="small">原創天堂風放置 RPG｜單檔 HTML｜LocalStorage 存檔</div>
 </header>
 
@@ -617,8 +616,31 @@ function startGame(){
  p=basePlayer();p.job=document.getElementById("jobSelect").value;p.stats={...createStats};
  recalcMax(true);spawnMonster();
  document.getElementById("create").style.display="none";document.getElementById("game").style.display="block";
- initControls();renderAll();startTimer();saveGame(false);
+ initControls();renderAll();startTimer();ensureBattleReady();saveGame(false);
 }
+
+function ensureBattleReady(){
+ try{
+  if(!p)return;
+  if(!p.map && p.map!==0)p.map=0;
+  if(!monster || !monster.name || !monster.maxHp || monster.hp===undefined){
+    spawnMonster();
+    log('<span class="good">戰鬥資料已重新初始化，開始掛機。</span>');
+  }
+  if(!timer){
+    startTimer();
+    log('<span class="good">自動戰鬥已啟動。</span>');
+  }
+  renderAll();
+  saveGame(false);
+ }catch(e){
+  console.error(e);
+  localStorage.removeItem("lineage_alpha_28");
+  alert("偵測到舊版存檔不相容，已清除舊存檔，請重新創角。");
+  location.reload();
+ }
+}
+
 function startTimer(){if(timer)clearInterval(timer);timer=setInterval(battle,1200);}
 function initControls(){
  let ms=document.getElementById("mapSelect");
@@ -1017,7 +1039,7 @@ function syncAutoSell(){p.autoSell={on:autoSellOn.checked,weapons:sellWeapons.ch
 function syncAutoSellUI(){if(!p)return;autoSellOn.checked=p.autoSell.on;sellWeapons.checked=p.autoSell.weapons;sellArmors.checked=p.autoSell.armors;sellAccessories.checked=p.autoSell.accessories;sellPlus.value=p.autoSell.maxPlus;keepBoss.checked=p.autoSell.keepBoss;keepBooks.checked=p.autoSell.keepBooks;}
 function log(t){let box=document.getElementById("log");box.innerHTML=t+"<hr>"+box.innerHTML;while(box.children.length>120)box.removeChild(box.lastChild);}
 function saveGame(msg=false){if(!p)return;localStorage.setItem("lineage_alpha_28",JSON.stringify(p));if(msg)alert("已存檔");}
-function loadGame(){let s=localStorage.getItem("lineage_alpha_28");if(!s)return false;try{p=JSON.parse(s);if(!p.next)p.next=nextExp(p.level);if(!p.skillCd)p.skillCd={};if(!p.buffs)p.buffs={};if(p.autoSkill===undefined)p.autoSkill=true;if(!p.learnedSkills)p.learnedSkills=[];if(!p.books)p.books={};if(p.skillPoints===undefined)p.skillPoints=0;document.getElementById("create").style.display="none";document.getElementById("game").style.display="block";initControls();spawnMonster();renderAll();startTimer();log("讀取存檔成功。");return true;}catch(e){return false;}}
+function loadGame(){let s=localStorage.getItem("lineage_alpha_28");if(!s)return false;try{p=JSON.parse(s);if(!p.next)p.next=nextExp(p.level);if(!p.skillCd)p.skillCd={};if(!p.buffs)p.buffs={};if(p.autoSkill===undefined)p.autoSkill=true;if(!p.learnedSkills)p.learnedSkills=[];if(!p.books)p.books={};if(p.skillPoints===undefined)p.skillPoints=0;document.getElementById("create").style.display="none";document.getElementById("game").style.display="block";initControls();spawnMonster();renderAll();startTimer();ensureBattleReady();log("讀取存檔成功。");return true;}catch(e){return false;}}
 function hardReset(){if(confirm("確定刪除存檔？")){localStorage.removeItem("lineage_alpha_28");location.reload();}}
 renderCreate();if(!loadGame())p=null;
 </script>
@@ -1027,7 +1049,7 @@ renderCreate();if(!loadGame())p=null;
     <h3>⚔ 戰鬥狀態</h3>
     <div id="mobilePlayerMini"></div>
     <div id="mobileMonsterMini"></div>
-    <div id="mobileCombatMini" class="small gold">掛機戰鬥中...</div>
+    <div id="mobileCombatMini" class="small gold">掛機戰鬥中... 若無訊息請重新整理或刪除舊存檔</div>
   </div>
 </div>
 
@@ -1059,7 +1081,7 @@ renderCreate();if(!loadGame())p=null;
 
 </body>
 
-<!-- Integrated build: 天堂風放置RPG Alpha 2.8 web version -->
+<!-- Integrated build: 天堂風放置RPG Alpha 5.5 web version -->
 
 <!-- 160 monsters expanded build -->
 
@@ -1090,4 +1112,6 @@ renderCreate();if(!loadGame())p=null;
 <!-- quick potion buy near idle settings build -->
 
 <!-- map selected frame fix build -->
+
+<!-- alpha 5.5 startup fix github pages -->
 </html>
